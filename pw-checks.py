@@ -33,18 +33,19 @@ Examples:
 """
 
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-logger = logging.getLogger(__name__)
-
-
 class PatchWorkChecker:
-    def __init__(self, entry=None):
+    def __init__(self, entry=None, logger=None):
         config = configparser.ConfigParser()
         try:
             config.read([CONFIG_FILE])
         except configparser.Error as e:
             sys.exit(f"Can't read {CONFIG_FILE}")
+
+        if logger:
+            self.logger = logger
+        else:
+            logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+            self.logger = logging.getLogger(__name__)
 
         if not entry:
             try:
@@ -95,12 +96,12 @@ class PatchWorkChecker:
                 patches = data
 
             if not patches:
-                logger.error(f"No patch found for message-id: {identifier}")
+                self.logger.error(f"No patch found for message-id: {identifier}")
                 return None
 
             return patches[0]["id"]
         except requests.exceptions.RequestException as e:
-            logger.error(f"Failed to resolve message-id {identifier}: {e}")
+            self.logger.error(f"Failed to resolve message-id {identifier}: {e}")
             return None
 
     def get_checks(self, identifier):
@@ -116,7 +117,7 @@ class PatchWorkChecker:
             data = response.json()
             return data.get("results", data) if isinstance(data, dict) else data
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching checks for patch {patch_id}: {e}")
+            self.logger.error(f"Error fetching checks for patch {patch_id}: {e}")
             return []
 
     def set_check(self, identifier, context, state, target_url, description):
@@ -138,7 +139,7 @@ class PatchWorkChecker:
             response.raise_for_status()
             return True
         except requests.exceptions.RequestException as e:
-            logger.error(f"Error setting check for patch {patch_id}: {e}")
+            self.logger.error(f"Error setting check for patch {patch_id}: {e}")
             return False
 
 
