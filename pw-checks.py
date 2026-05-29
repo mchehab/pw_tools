@@ -33,7 +33,7 @@ Examples:
 """
 
 
-class PatchWorkChecker:
+class PatchworkChecker:
     def __init__(self, entry=None, logger=None, timeout=10):
         if logger:
             self.logger = logger
@@ -177,7 +177,7 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    checker = PatchWorkChecker(args.project)
+    checker = PatchworkChecker(args.project)
 
     if args.command == "get":
         checks = checker.get_checks(args.identifier)
