@@ -34,18 +34,21 @@ Examples:
 
 
 class PatchWorkChecker:
-    def __init__(self, entry=None, logger=None):
+    def __init__(self, entry=None, logger=None, timeout=10):
+        if logger:
+            self.logger = logger
+        else:
+            logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+            self.logger = logging.getLogger(__name__)
+
+        self.timeout = timeout
+
         config = configparser.ConfigParser()
         try:
             config.read([CONFIG_FILE])
         except configparser.Error as e:
             sys.exit(f"Can't read {CONFIG_FILE}")
 
-        if logger:
-            self.logger = logger
-        else:
-            logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
-            self.logger = logging.getLogger(__name__)
 
         if not entry:
             try:
@@ -86,7 +89,7 @@ class PatchWorkChecker:
         params = {"msgid": identifier, "per_page": 1}
 
         try:
-            response = self.session.get(url, params=params, timeout=10)
+            response = self.session.get(url, params=params, timeout=self.timeout)
             response.raise_for_status()
             data = response.json()
 
@@ -112,9 +115,10 @@ class PatchWorkChecker:
 
         url = f"{self.url}/patches/{patch_id}/checks/"
         try:
-            response = self.session.get(url, timeout=10)
+            response = self.session.get(url, timeout=self.timeout)
             response.raise_for_status()
             data = response.json()
+
             return data.get("results", data) if isinstance(data, dict) else data
         except requests.exceptions.RequestException as e:
             self.logger.error(f"Error fetching checks for patch {patch_id}: {e}")
@@ -135,7 +139,7 @@ class PatchWorkChecker:
         }
 
         try:
-            response = self.session.post(url, json=check_data, timeout=10)
+            response = self.session.post(url, json=check_data, timeout=self.timeout)
             response.raise_for_status()
             return True
         except requests.exceptions.RequestException as e:
