@@ -98,7 +98,6 @@ class PatchworkChecker:
                 patches = data
 
             if not patches:
-                self.logger.error(f"No patch found for message-id: {identifier}")
                 return None
 
             return patches[0]["id"]
@@ -106,12 +105,12 @@ class PatchworkChecker:
             self.logger.error(f"Failed to resolve message-id {identifier}: {e}")
             return None
 
-    def get_checks(self, identifier: str) -> List[Dict[str, Any]]:
+    def get_checks(self, identifier: str) -> Optional[List[Dict[str, Any]]]:
         """Fetch all checks for a specific patch."""
         patch_id = self._resolve_patch_id(identifier)
         if patch_id is None:
-            self.logger.warning(f"patch {patch_id} not found.")
-            return []
+            self.logger.warning(f"patch {identifier} not found.")
+            return None
 
         url = f"{self.url}/patches/{patch_id}/checks/"
         try:
@@ -130,7 +129,7 @@ class PatchworkChecker:
         """Set a check status for a specific patch."""
         patch_id = self._resolve_patch_id(identifier)
         if patch_id is None:
-            self.logger.warning(f"patch {patch_id} not found.")
+            self.logger.warning(f"patch {identifier} not found.")
             return False
 
         url = f"{self.url}/patches/{patch_id}/checks/"

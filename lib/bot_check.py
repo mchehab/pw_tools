@@ -61,18 +61,20 @@ class BotEmailProcessor:
             with open(fname, 'rb') as f:
                 msg = email.message_from_binary_file(f)
 
-            msgid = msg.get("Message-ID").strip("<>").strip()
+            msgid = msg.get("Message-ID")
             if not msgid:
                 return False
+
+            msgid = msgid.strip("<>").strip()
 
             reply_id = msg.get("In-Reply-To")
             if not reply_id:
                 reply_id = msg.get("References")
 
-            reply_id = reply_id.strip("<>").strip()
-
             if not reply_id:
                 return False
+
+            reply_id = reply_id.strip("<>").strip()
 
             addr = self._extract_email(msg.get("From"))
             if not addr or addr not in BOTS:
@@ -83,8 +85,11 @@ class BotEmailProcessor:
             state = "warning"
             description = "Link"
 
-            checks = reversed(self.patchwork_checker.get_checks(reply_id))
-            for check in checks:
+            checks = self.patchwork_checker.get_checks(reply_id)
+            if checks is None:
+                return False
+
+            for check in reversed(checks):
                 if check.get('context') != context:
                     continue
                 if check.get('state') != state:
@@ -109,10 +114,11 @@ class MaildirProcessor:
                  patchwork_checker: PatchworkChecker,
                  logger: Optional[logging.Logger]=None,
                  dry_run: Optional[bool]=False):
-        if not maildir.is_dir():
+        self.maildir = os.path.expanduser(maildir)
+
+        if not os.path.isdir(self.maildir):
             raise FileNotFoundError(f"Maildir directory not found: {self.maildir}")
 
-        self.maildir = os.path.expanduser(maildir)
         self.bot_processor = BotEmailProcessor(patchwork_checker,
                                                logger=logger,
                                                dry_run=dry_run)
@@ -123,13 +129,12 @@ class MaildirProcessor:
         count = 0
         for folder in ["cur", "new"]:
             folder_path = os.path.join(self.maildir, folder)
-            if not os.path.isdir(folder_path.is_dir):
+            if not os.path.isdir(folder_path):
                 continue
 
             for fname in os.listdir(folder_path):
                 fpath = os.path.join(folder_path, fname)
-                if fpath.is_file():
-                    if self.bot_processor.process_file(fpath):
-                        count += 1
+                if self.bot_processor.process_file(fpath):
+                    count += 1
 
         return count

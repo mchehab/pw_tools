@@ -61,7 +61,8 @@ def main():
             sys.exit("Failed to add checker")
 
     elif args.maildir:
-        maildir_proc = MaildirProcessor(args.maildir, proc)
+        maildir_proc = MaildirProcessor(args.maildir, checker,
+                                        logger, dry_run=args.dry_run)
         count = maildir_proc.process_all()
         logger.info(f"Finished. Successfully added {count} check results.")
 
