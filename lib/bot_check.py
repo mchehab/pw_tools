@@ -6,6 +6,7 @@ import email
 import email.utils
 import logging
 import os
+import sys
 
 from typing import Optional
 
@@ -53,13 +54,16 @@ class BotEmailProcessor:
         return f"{username}@{url}"
 
     def process_file(self, fname: str) -> bool:
-        fname = os.path.expanduser(fname)
-        if not os.path.isfile(fname):
-            sys.exit(f"Error: File not found: {fname}")
-
         try:
-            with open(fname, 'rb') as f:
-                msg = email.message_from_binary_file(f)
+            if fname == '-':
+                msg = email.message_from_bytes(sys.stdin.buffer.read())
+            else:
+                fname = os.path.expanduser(fname)
+                if not os.path.isfile(fname):
+                    sys.exit(f"Error: File not found: {fname}")
+
+                with open(fname, 'rb') as f:
+                    msg = email.message_from_binary_file(f)
 
             msgid = msg.get("Message-ID")
             if not msgid:
