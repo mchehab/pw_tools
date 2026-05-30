@@ -25,22 +25,22 @@ def main():
                                      formatter_class=argparse.RawDescriptionHelpFormatter,
                                      epilog=EPILOG)
 
-    parser.add_argument("--project", "-p",
+    parser.add_argument("--project", "-p", type=str,
                         help=".pwclientrc project entry to use (if not specified, use default}")
-    parser.add_argument("--config", "-c",
+    parser.add_argument("--config", "-c", type=str,
                         help="config file to use (optional)")
-    parser.add_argument("--url", "-u",
+    parser.add_argument("--url", "-u", type=str,
                         help="Patchwork's REST API base URL")
-    parser.add_argument("--token", "-t",
+    parser.add_argument("--token", "-t", type=str,
                         help="Patchwork's REST API token")
 
     parser.add_argument("--dry-run", action="store_true",
                         help="Simulate without updating patchwork status")
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--file", type=str,
+    group.add_argument("--file", "-f", type=str,
                        help="Path to a single email .eml file")
-    group.add_argument("--maildir", type=str,
+    group.add_argument("--maildir", "-m", type=str,
                        help="Path to a Maildir directory")
 
 
