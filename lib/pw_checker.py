@@ -10,6 +10,8 @@ import configparser
 import logging
 import sys
 
+from typing import Optional, List, Dict, Any
+
 import requests
 
 
@@ -17,8 +19,13 @@ class PatchworkChecker:
     """
     Allow get/update Patchwork checks done via CI
     """
-    def __init__(self, config_file=None, entry=None, url=None, token=None,
-                 logger=None, timeout=10, max_retries=3):
+    def __init__(self,
+                 config_file: Optional[str] = None,
+                 entry: Optional[str] = None,
+                 url: Optional[str] = None,
+                 token: Optional[str] = None,
+                 logger: Optional[logging.Logger] = None,
+                 timeout: int = 10, max_retries: int = 3) -> None:
         if logger:
             self.logger = logger
         else:
@@ -64,7 +71,7 @@ class PatchworkChecker:
                 "Authorization": f"Token {self.token}",
             })
 
-    def _resolve_patch_id(self, identifier):
+    def _resolve_patch_id(self, identifier: str) -> Optional[int]:
         """
         Resolve a patch ID from either a numeric patch-id or a message-id.
         Uses the official API /patches/ endpoint with the msgid filter.
@@ -99,7 +106,7 @@ class PatchworkChecker:
             self.logger.error(f"Failed to resolve message-id {identifier}: {e}")
             return None
 
-    def get_checks(self, identifier):
+    def get_checks(self, identifier: str) -> List[Dict[str, Any]]:
         """Fetch all checks for a specific patch."""
         patch_id = self._resolve_patch_id(identifier)
         if patch_id is None:
@@ -116,8 +123,9 @@ class PatchworkChecker:
             self.logger.error(f"Error fetching checks for patch {patch_id}: {e}")
             return []
 
-    def set_check(self, identifier, context, state, target_url, description,
-                  dry_run=False):
+    def set_check(self, identifier: str, context: str,
+                  state: str, target_url: str,
+                  description: str, dry_run: bool = False) -> bool:
         """Set a check status for a specific patch."""
         patch_id = self._resolve_patch_id(identifier)
         if patch_id is None:
