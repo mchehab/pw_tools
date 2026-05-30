@@ -107,19 +107,24 @@ class PatchworkChecker:
             self.logger.error(f"Error fetching checks for patch {patch_id}: {e}")
             return []
 
-    def set_check(self, identifier, context, state, target_url, description):
+    def set_check(self, identifier, context, state, target_url, description,
+                  dry_run=False):
         """Set a check status for a specific patch."""
         patch_id = self._resolve_patch_id(identifier)
         if patch_id is None:
             return False
 
-        url = f"{self.url}/patches/{patch_id}/checks/"
+        url = f"[dry-run] {self.url}/patches/{patch_id}/checks/"
         check_data = {
             "state": state.lower(),  # Patchwork requires lowercase states
             "target_url": target_url,
             "context": context,
             "description": description,
         }
+
+        if dry_run:
+            self.logger.info(f"{url}: add {check_data}")
+            return True
 
         try:
             response = self.session.post(url, json=check_data, timeout=self.timeout)

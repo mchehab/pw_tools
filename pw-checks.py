@@ -48,6 +48,8 @@ def main():
 
     set_parser = subparsers.add_parser("set",
                                        help="Set check status for a specific patch")
+    set_parser.add_argument("--dry-run", action="store_true",
+                            help="Simulate adding a new check")
     set_parser.add_argument("identifier", help="Patch ID or Message-ID")
     set_parser.add_argument("context",
                             help="Check context/name (e.g., CI, Lint, Build)")
@@ -75,7 +77,8 @@ def main():
 
     elif args.command == "set":
         success = checker.set_check(args.identifier, args.context,
-                                    args.state, args.url, args.description)
+                                    args.state, args.url, args.description,
+                                    dry_run=args.dry_run)
         if success:
             print(f"{args.context} {args.identifier} set to '{args.state}'")
         else:
