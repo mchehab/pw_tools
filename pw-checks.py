@@ -14,9 +14,7 @@ from lib.pw_checker import PatchworkChecker
 
 CONFIG_FILE = os.environ.get("PWCLIENTRC", os.path.expanduser("~/.pwclientrc"))
 
-FNAME = os.path.basename(__file__)
-
-EPILOG = f"""
+EPILOG = """
 Examples:
   get <message-id or patch-id>
       Show checks for a specific patch.
@@ -26,8 +24,8 @@ Examples:
       Set check status for a specific patch.
 
       Example:
-          {FNAME} set 12345 MyCI success https://ci.example.com "Build passed"
-          {FNAME} set patch-id-12345@thread.gmane.org warning https://lint.example.com "lint warning. See link for details"
+          %(prog)s set 12345 MyCI success https://ci.example.com "Build passed"
+          %(prog)s set patch-id-12345@thread.gmane.org warning https://lint.example.com "lint warning. See link for details"
 """
 
 
@@ -70,7 +68,10 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    checker = PatchworkChecker(config_file=CONFIG_FILE, entry=args.project,
+    if not args.url and not args.config:
+        args.config = CONFIG_FILE
+
+    checker = PatchworkChecker(config_file=args.config, entry=args.project,
                                url=args.url, token=args.token)
 
     if args.command == "get":
