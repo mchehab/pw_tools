@@ -12,7 +12,7 @@ from typing import Optional
 from .pw_checker import PatchworkChecker
 
 BOTS = {
-    "lkp@intel.com": "LDP",
+    "lkp@intel.com": "LKP",
     "syzbot@syzkaller.appspotmail.com": "syzbot",
     "sashiko-bot@kernel.org": "sashiko",
 }
