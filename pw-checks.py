@@ -87,10 +87,8 @@ def main():
         success = checker.set_check(args.identifier, args.context,
                                     args.state, args.url, args.description,
                                     dry_run=args.dry_run)
-        if success:
-            print(f"{args.context} {args.identifier} set to '{args.state}'")
-        else:
-            sys.exit(f"Failed to set check for {args.identifier}")
+        if not success:
+            sys.exit(1)
 
     else:
         parser.print_help()

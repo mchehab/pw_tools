@@ -110,6 +110,7 @@ class PatchworkChecker:
         """Fetch all checks for a specific patch."""
         patch_id = self._resolve_patch_id(identifier)
         if patch_id is None:
+            self.logger.warning(f"patch {patch_id} not found.")
             return []
 
         url = f"{self.url}/patches/{patch_id}/checks/"
@@ -129,10 +130,11 @@ class PatchworkChecker:
         """Set a check status for a specific patch."""
         patch_id = self._resolve_patch_id(identifier)
         if patch_id is None:
+            self.logger.warning(f"patch {patch_id} not found.")
             return False
 
-        url = f"[dry-run] {self.url}/patches/{patch_id}/checks/"
-        check_data = {
+        url = f"{self.url}/patches/{patch_id}/checks/"
+        data = {
             "state": state.lower(),  # Patchwork requires lowercase states
             "target_url": target_url,
             "context": context,
@@ -140,13 +142,15 @@ class PatchworkChecker:
         }
 
         if dry_run:
-            self.logger.info(f"{url}: add {check_data}")
+            self.logger.info(f"[dry-run] {url}: add {data}")
             return True
 
         try:
-            response = self.session.post(url, json=check_data, timeout=self.timeout)
+            response = self.session.post(url, json=data, timeout=self.timeout)
             response.raise_for_status()
+            self.logger.info(f"{patch_id}: {data["context"]} set to '{data["state"]}'")
+
             return True
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Error setting check for patch {patch_id}: {e}")
+            self.logger.error(f"{patch_id}: {data["context"]} failed to set '{data["state"]}'")
             return False
