@@ -2,8 +2,6 @@
 
 This repository contains some tools meant to be used with Patchwork.
 
-Currently, it has one one tool: pw-checks.py.
-
 ## pw-checks.py
 
 This small tool allows get/set CI checks for a patchwork patch. It
@@ -77,3 +75,10 @@ Set warning:
 ```bash
 pw-checks.py set patch-id-12345@example.com warning https://lint.example.com "See link for details"
 ```
+
+# add_bot_checks.py
+
+Checks the content of a file or maildir, searching for known CI bots.
+
+If a CI bot e-mail is found with proper data, add a new checker if it
+doesn't exist yet.
