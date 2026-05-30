@@ -17,7 +17,8 @@ class PatchworkChecker:
     """
     Allow get/update Patchwork checks done via CI
     """
-    def __init__(self, config_file, entry=None, logger=None, timeout=10):
+    def __init__(self, config_file=None, entry=None, url=None, token=None,
+                 logger=None, timeout=10):
         if logger:
             self.logger = logger
         else:
@@ -26,34 +27,42 @@ class PatchworkChecker:
 
         self.timeout = timeout
 
-        config = configparser.ConfigParser()
-        try:
-            config.read([config_file])
-        except configparser.Error as e:
-            sys.exit(f"Can't read {config_file}: {e}")
-
-
-        if not entry:
+        if url:
+            self.url = url
+            self.token = token
+        elif not config_file:
+            sys.exit("At least config_file or both url and token is needed.")
+        else:
+            config = configparser.ConfigParser()
             try:
-                entry = config.get("options", "default")
-            except configparser.Error:
-                sys.exit(f"Default project not configured at {config_file}")
+                config.read([config_file])
+            except configparser.Error as e:
+                sys.exit(f"Can't read {config_file}: {e}")
 
-        try:
-            self.url = config.get(entry, "url").removesuffix("/")
-        except configparser.Error:
-            sys.exit(f"Project {entry}: URL is missing at {config_file}")
-        try:
-            self.token = config.get(entry, "token")
-        except configparser.Error:
-            sys.exit(f"Project {entry}: token is missing at {config_file}")
+            if not entry:
+                try:
+                    entry = config.get("options", "default")
+                except configparser.Error:
+                    sys.exit(f"Default project not configured at {config_file}")
+
+            try:
+                self.url = config.get(entry, "url").removesuffix("/")
+            except configparser.Error:
+                sys.exit(f"Project {entry}: URL is missing at {config_file}")
+            try:
+                self.token = config.get(entry, "token")
+            except configparser.Error:
+                sys.exit(f"Project {entry}: token is missing at {config_file}")
 
         self.session = requests.Session()
         self.session.mount("https://",
                            requests.adapters.HTTPAdapter(max_retries=3))
-        self.session.headers.update({
-            "Authorization": f"Token {self.token}",
-        })
+
+        # For get, token can be optional
+        if self.token:
+            self.session.headers.update({
+                "Authorization": f"Token {self.token}",
+            })
 
     def _resolve_patch_id(self, identifier):
         """

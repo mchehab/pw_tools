@@ -38,6 +38,12 @@ def main():
                                      epilog=EPILOG)
     parser.add_argument("--project", "-p",
                         help=".pwclientrc project entry to use (if not specified, use default}")
+    parser.add_argument("--config", "-c",
+                        help="config file to use (optional)")
+    parser.add_argument("--url", "-u",
+                        help="Patchwork's REST API base URL")
+    parser.add_argument("--token", "-t",
+                        help="Patchwork's REST API token")
 
     subparsers = parser.add_subparsers(dest="command", required=False)
 
@@ -64,7 +70,8 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-    checker = PatchworkChecker(CONFIG_FILE, args.project)
+    checker = PatchworkChecker(config_file=CONFIG_FILE, entry=args.project,
+                               url=args.url, token=args.token)
 
     if args.command == "get":
         checks = checker.get_checks(args.identifier)
