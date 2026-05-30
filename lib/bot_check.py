@@ -79,12 +79,25 @@ class BotEmailProcessor:
                 return False
 
             url = f"{LORE_BASE_URL}/{msgid}"
+            context = BOTS[addr]
+            state = "warning"
+            description = "Link"
+
+            checks = reversed(self.patchwork_checker.get_checks(reply_id))
+            for check in checks:
+                if check.get('context') != context:
+                    continue
+                if check.get('state') != state:
+                    continue
+                if check.get('target_url') == url:
+                    self.logger.info(f"{msgid} {context} already set to {url}.")
+                    return True
 
             return self.patchwork_checker.set_check(identifier=reply_id,
-                                                    context=BOTS[addr],
-                                                    state="warning",
+                                                    context=context,
+                                                    state=state,
                                                     target_url=url,
-                                                    description="Link",
+                                                    description=description,
                                                     dry_run=self.dry_run)
         except Exception as e:
             self.logger.error(f"Failed to process {fname}: {repr(e)}")
