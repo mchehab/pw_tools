@@ -18,7 +18,7 @@ class PatchworkChecker:
     Allow get/update Patchwork checks done via CI
     """
     def __init__(self, config_file=None, entry=None, url=None, token=None,
-                 logger=None, timeout=10):
+                 logger=None, timeout=10, max_retries=3):
         if logger:
             self.logger = logger
         else:
@@ -56,7 +56,7 @@ class PatchworkChecker:
 
         self.session = requests.Session()
         self.session.mount("https://",
-                           requests.adapters.HTTPAdapter(max_retries=3))
+                           requests.adapters.HTTPAdapter(max_retries=max_retries))
 
         # For get, token can be optional
         if self.token:
