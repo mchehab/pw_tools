@@ -147,9 +147,9 @@ class PatchworkChecker:
         try:
             response = self.session.post(url, json=data, timeout=self.timeout)
             response.raise_for_status()
-            self.logger.info(f"{patch_id}: {data["context"]} set to '{data["state"]}'")
+            self.logger.info(f"{patch_id}: {data['context']} set to '{data['state']}'")
 
             return True
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"{patch_id}: {data["context"]} failed to set '{data["state"]}'")
+            self.logger.error(f"{patch_id}: {data['context']} failed to set '{data['state']}'")
             return False
